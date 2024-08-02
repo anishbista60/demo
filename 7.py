@@ -1,18 +1,25 @@
-# Write program to read digital image. Split image into 4 quadrants.
-
-import cv2 as cv
+import cv2
 import matplotlib.pyplot as plt
-
-img=cv.imread('puppy.png')
-img_rgb=cv.cvtColor(img,cv.COLOR_BGR2RGB)
-h,w,channels=img.shape
-cx=h//2
-cy=w//2
-tl=img_rgb[0:cx,0:cy]
-tr=img_rgb[0:cx,cy:w]
-bl=img_rgb[cx:h,0:cy]
-br=img_rgb[cx:h,cy:w]
-plt.subplot(221);plt.imshow(tl)
-plt.subplot(222);plt.imshow(tr)
-plt.subplot(223);plt.imshow(bl)
-plt.subplot(224);plt.imshow(br)
+image=cv2.imread("fruit.jpg")
+image_mat=cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
+plt.title("Original Image")
+ht,wd,channels=image.shape
+midx=wd//2
+midy=ht//2
+leftup=image_mat[:midy,:midx]
+rightup=image_mat[:midy,midx:]
+leftdown=image_mat[midy:,:midx]
+rightdown=image_mat[midy:,midx:]
+plt.axis("off")
+plt.imshow(image_mat)
+fig , axs=plt.subplots(2,2)
+lst_var=[leftup,rightup,leftdown,rightdown]
+lst_titles=["leftup","rightup","leftdown","rightdown"]
+k=0
+for i in range(2):
+  for j in range(2):
+    axs[i,j].imshow(lst_var[k])
+    axs[i,j].axis("off")
+    axs[i,j].set_title(lst_titles[k])
+    k=k+1
+plt.show()
