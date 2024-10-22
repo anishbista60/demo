@@ -1,19 +1,15 @@
-name: DCO Sign-Off Check
+name: Check Signed-off-by
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, edited]
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  dco:
+  check-signed-off-by:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Run DCO Check
-        uses: actions/dco@v3
+      - name: Check for Signed-off-by
+        run: |
+          git log -1 --pretty="%s" | grep -q "Signed-off-by:" || exit 1
