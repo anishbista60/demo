@@ -1,15 +1,16 @@
-name: Check Signed-off-by
+name: DCO Check
 
-on:
-  push:
-    branches: [main]
+on: [pull_request]
 
 jobs:
-  check-signed-off-by:
+  dco:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Check for Signed-off-by
-        run: |
-          git log -1 --pretty="%s" | grep -q "Signed-off-by:" || exit 1
+
+      - name: Run DCO Check
+        uses: docker://ghcr.io/scality/dco-check:latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
