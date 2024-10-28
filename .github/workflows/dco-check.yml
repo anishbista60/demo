@@ -1,16 +1,19 @@
-name: DCO Check
-
-on: [pull_request]
-
+# .github/workflows/dco.yml
+name: DCO
+on:
+  pull_request:
+  push:
+    branches:
+      - master
 jobs:
-  dco:
+  check_dco:
     runs-on: ubuntu-latest
-
+    name: Check DCO
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Run DCO Check
-        uses: scacap/action-dco@v2
+      - name: Run dco-check
+        uses: christophebedard/dco-check@0.5.0
+        with:
+            python-version: '3.12'
+            args: '--verbose'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
