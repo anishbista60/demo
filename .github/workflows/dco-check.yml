@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - main
 jobs:
   check_dco:
     runs-on: ubuntu-latest
@@ -12,8 +12,5 @@ jobs:
     steps:
       - name: Run dco-check
         uses: christophebedard/dco-check@0.5.0
-        with:
-            python-version: '3.12'
-            args: '--verbose'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
