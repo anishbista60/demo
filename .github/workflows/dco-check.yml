@@ -5,12 +5,12 @@ on: [pull_request]
 jobs:
   dco:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Run DCO Check
-        uses: docker://ghcr.io/scality/dco-check:latest
+        uses: scacap/action-dco@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
