@@ -1,0 +1,79 @@
+name: CloudNativePG Notifications
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Runs every 5 minutes (minimum allowed)
+    # Or better yet, run less frequently:
+    # - cron: '0 */6 * * *'  # Every 6 hours
+    # - cron: '0 9 * * *'    # Daily at 9 AM
+  workflow_dispatch:  # Allow manual triggering for testing
+
+jobs:
+  notify-clients:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Fetch bugs and defects from the past month
+      - name: Fetch bugs and defects
+        run: |
+          curl -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/cloudnative-pg/cloudnative-pg/issues?labels=bug,defect&since=$(date -d 'last month' +%Y-%m-%dT%H:%M:%SZ)" \
+          > bugs.json
+          
+      # Step 2: Fetch new features from the past month
+      - name: Fetch new features
+        run: |
+          curl -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/cloudnative-pg/cloudnative-pg/issues?labels=enhancement,feature&since=$(date -d 'last month' +%Y-%m-%dT%H:%M:%SZ)" \
+          > features.json
+          
+      - name: Process data and create summary
+        run: |
+          echo "=== Debugging: Contents of bugs.json ==="
+          cat bugs.json
+          echo "=== Debugging: Contents of features.json ==="
+          cat features.json
+          
+          bugs_count=$(jq length bugs.json)
+          features_count=$(jq length features.json)
+          
+          echo "Found $bugs_count bugs and $features_count features"
+          
+          if [ "$bugs_count" -gt 0 ]; then
+            bugs_summary=$(jq -r '.[] | "- " + .title + " (" + .html_url + ")"' bugs.json)
+          else
+            bugs_summary="No bugs found in the past month"
+          fi
+          
+          if [ "$features_count" -gt 0 ]; then
+            features_summary=$(jq -r '.[] | "- " + .title + " (" + .html_url + ")"' features.json)
+          else
+            features_summary="No new features found in the past month"
+          fi
+          
+          echo "BUGS_SUMMARY<<EOF" >> $GITHUB_ENV
+          echo "$bugs_summary" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "FEATURES_SUMMARY<<EOF" >> $GITHUB_ENV
+          echo "$features_summary" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          
+      # Step 4: Send Slack notification
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: ${{ vars.SLACK_CHANNEL_ID }}
+          slack-message: |
+            *Monthly CloudNativePG Updates*
+            *Bugs and Defects:*
+            ${{ env.BUGS_SUMMARY }}
+            *New Features:*
+            ${{ env.FEATURES_SUMMARY }}
+            
+      # Debug step to show what would be sent
+      - name: Debug - Show summary
+        run: |
+          echo "=== SUMMARY DEBUG ==="
+          echo "=== BUGS_SUMMARY ==="
+          echo "${{ env.BUGS_SUMMARY }}"
+          echo "=== FEATURES_SUMMARY ==="
+          echo "${{ env.FEATURES_SUMMARY }}"
